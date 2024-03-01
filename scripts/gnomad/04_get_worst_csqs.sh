@@ -2,12 +2,12 @@
 #
 #SBATCH --account=lindgren.prj
 #SBATCH --job-name=get_worst_csqs
-#SBATCH --chdir=/well/lindgren-ukbb/projects/ukbb-11867/flassen/projects/KO/wgs_ko_ukbb
+#SBATCH --chdir=/well/lindgren-ukbb/projects/ukbb-11867/flassen/projects/KO/gene_hwe
 #SBATCH --output=logs/get_worst_csqs.log
 #SBATCH --error=logs/get_worst_csqs.errors.log
 #SBATCH --partition=short
-#SBATCH --cpus-per-task 2
-#SBATCH --array=21
+#SBATCH --cpus-per-task 1
+#SBATCH --array=1-22
 
 source utils/qsub_utils.sh
 source utils/hail_utils.sh
@@ -17,8 +17,8 @@ readonly spark_dir="data/tmp/spark"
 readonly array_idx=$( get_array_task_id )
 readonly chr=$( get_chr ${array_idx} )
 
-readonly in_dir="data/gnomad/genomes/vep105/process_csqs"
-readonly in="${in_dir}/gnomad.genomes.v4.0.chr${chr}.vep105.csqs.ht"
+readonly in_dir="data/gnomad/exomes/vep105/process_csqs"
+readonly in="${in_dir}/gnomad.exomes.v4.0.chr${chr}.vep105.csqs.ht"
 
 readonly spliceai_dir="/well/lindgren/barney/brava_annotation/data/spliceai"
 readonly spliceai_path="${spliceai_dir}/ukb_wes_450k.spliceai.chr${chr}.ht"
@@ -28,8 +28,8 @@ readonly spliceai_cutoff=0.50 # 0.20/0.50
 readonly case_builder="brava" # original/brava
 readonly group="brava_s50"
 
-readonly out_dir="data/gnomad/genomes/vep105/worst_csqs"
-readonly out_prefix="${out_dir}/gnomad.genomes.v4.0.chr${chr}.vep105.csqs.csqs.worst_csq_by_gene_canonical.${group}"
+readonly out_dir="data/gnomad/exomes/vep105/worst_csqs"
+readonly out_prefix="${out_dir}/gnomad.exomes.v4.0.chr${chr}.vep105.csqs.csqs.worst_csq_by_gene_canonical.${group}"
 readonly hail_script="scripts/gnomad/04_get_worst_csqs.py"
 
 mkdir -p ${out_dir}

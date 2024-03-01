@@ -2,12 +2,12 @@
 
 #SBATCH --account=lindgren.prj
 #SBATCH --job-name=process_csqs
-#SBATCH --chdir=/well/lindgren-ukbb/projects/ukbb-11867/flassen/projects/KO/wgs_ko_ukbb
+#SBATCH --chdir=/well/lindgren-ukbb/projects/ukbb-11867/flassen/projects/KO/gene_hwe
 #SBATCH --output=logs/process_csqs.log
 #SBATCH --error=logs/process_csqs.errors.log
 #SBATCH --partition=short
 #SBATCH --cpus-per-task 1
-#SBATCH --array=20,22
+#SBATCH --array=1-22
 
 set -o errexit
 set -o nounset
@@ -20,11 +20,11 @@ readonly spark_dir="data/tmp/spark"
 readonly array_idx=$( get_array_task_id )
 readonly chr=$( get_chr ${array_idx} )
 
-readonly in_dir="data/gnomad/genomes/vep105/vep_out"
-readonly in="${in_dir}/gnomad.genomes.v4.0.chr${chr}.vep105.ht"
+readonly in_dir="data/gnomad/exomes/vep105/vep_out"
+readonly in="${in_dir}/gnomad.exomes.v4.0.chr${chr}.vep105.ht"
 
-readonly out_dir="data/gnomad/genomes/vep105/process_csqs"
-readonly out_prefix="${out_dir}/gnomad.genomes.v4.0.chr${chr}.vep105.csqs"
+readonly out_dir="data/gnomad/exomes/vep105/process_csqs"
+readonly out_prefix="${out_dir}/gnomad.exomes.v4.0.chr${chr}.vep105.csqs"
 readonly hail_script="scripts/gnomad/03_process_csqs.py"
 
 mkdir -p ${out_dir}

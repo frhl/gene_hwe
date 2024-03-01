@@ -25,7 +25,7 @@ readonly in="${in_dir}/gnomad.exomes.v4.0.sites.chr${chr}.vcf.bgz"
 
 readonly json_path="/well/lindgren-ukbb/projects/ukbb-11867/flassen/projects/KO/wes_ko_ukbb_nexus/utils/configs/vep105_revel_float.json"
 
-readonly out_dir="data/gnomad/exomes/vep105"
+readonly out_dir="data/gnomad/exomes/vep105/vep_out"
 readonly out_prefix="${out_dir}/gnomad.exomes.v4.0.chr${chr}.vep105"
 
 readonly hail_script="scripts/gnomad/02_vep.py"
