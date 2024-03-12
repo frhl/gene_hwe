@@ -7,7 +7,7 @@
 #SBATCH --error=logs/subset_counts.errors.log
 #SBATCH --partition=short
 #SBATCH --cpus-per-task 1
-#SBATCH --array=21
+#SBATCH --array=1-22
 
 set -o errexit
 set -o nounset
@@ -26,9 +26,11 @@ readonly in_file="${in_dir}/gnomad.exomes.v4.0.sites.chr${chr}.counts.all.txt.gz
 readonly vep_dir="data/gnomad/exomes/vep105/worst_csqs"
 readonly vep_path="${vep_dir}/gnomad.exomes.v4.0.chr${chr}.vep105.csqs.csqs.worst_csq_by_gene_canonical.brava_s50.txt.gz"
 
-readonly out_dir="data/gnomad/subset"
-readonly out_prefix="${out_dir}/gnomad.exomes.v4.0.sites.chr${chr}.counts.all.${pop}"
+readonly maf_label="maf10" # 10%
+readonly out_dir="data/gnomad/subset/${maf_label}"
+readonly out_prefix="${out_dir}/gnomad.exomes.v4.0.sites.chr${chr}.counts.all.${maf_label}.${pop}"
 
+readonly maf_cutoff="0.1"
 readonly AN_cutoff=10000
 readonly AC_cutoff=1
 
@@ -41,7 +43,8 @@ Rscript ${rscript} \
   --population="${pop}" \
   --out_prefix="${out_prefix}" \
   --AN_cutoff=${AN_cutoff} \
-  --AC_cutoff=${AC_cutoff}
+  --AC_cutoff=${AC_cutoff} \
+  --max_MAF_cutoff=${maf_cutoff}
 
 
 

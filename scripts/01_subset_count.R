@@ -4,16 +4,21 @@ library(data.table)
 library(argparse)
 
 main <- function(args){
+    
+    print(args)
+    
     input_path <- args$input_path
     vep_path <- args$vep_path
     pop <- args$population
     out_prefix <- args$out_prefix
     an_cutoff <- as.integer(args$AN_cutoff) # Ensure AN_cutoff is treated as an integer
     ac_cutoff <- as.integer(args$AC_cutoff) # Ensure AN_cutoff is treated as an integer
+    max_MAF_cutoff <- as.numeric(args$max_MAF_cutoff)
 
     # Load the data table from the input path
     dt <- fread(input_path)
     vep <- fread(vep_path)
+    vep <- vep[vep$canonical == 1,]
 
     # Construct column names based on the specified population
     ac_col <- paste("AC", pop, sep="_")
@@ -25,6 +30,7 @@ main <- function(args){
     dt_filtered <- dt[, ..columns_to_keep]
 
     # Remove rows where AN value for the population is below the AN_cutoff
+    dt_filtered <- dt_filtered[get(an_col) > 0]
     dt_filtered <- dt_filtered[get(an_col) >= an_cutoff]
     dt_filtered <- dt_filtered[get(ac_col) >= ac_cutoff]
 
@@ -33,10 +39,11 @@ main <- function(args){
     dt_filtered[, het := AC - (2*hom_alt) ]
     dt_filtered[, hom_ref := (AN/2) - hom_alt - het ]
     dt_filtered[, hom_alt_het := (2*hom_alt) + het ]
-    
-    print(head(vep))
-    print(head(dt_filtered))
+    dt_filtered[, MAC := pmin(AC, AN-AC)] 
+    dt_filtered[, MAF := MAC / AN] 
 
+    # remove based on MAF cutoff
+    dt_filtered <- dt_filtered[dt_filtered$MAF < max_MAF_cutoff]
 
     # split by vep consequence
     # Write the filtered data table to the output path
@@ -49,7 +56,14 @@ main <- function(args){
         print(paste("Processing annotation:", anno, "with", nrow(dt_filtered_out), "rows"))
         fwrite(dt_filtered_out, out_file, sep="\t")
     }
-    
+
+    # also do pLoF + damaging missense
+    snps_to_keep <- vep$varid[vep$brava_csqs %in% c("pLoF", "damaging_missense")]
+    dt_filtered_out <- dt_filtered[dt_filtered$SNPID %in% snps_to_keep,]
+    out_file <- paste0(out_prefix, ".pLoF_damaging_missense.txt.gz")
+    print(paste("Processing annotation:", "pLoF_damaging_missense", "with", nrow(dt_filtered_out), "rows"))
+    fwrite(dt_filtered_out, out_file, sep="\t")
+
 }
 
 # add arguments
@@ -60,6 +74,7 @@ parser$add_argument("--population", default=NULL, required = TRUE, help = "Popul
 parser$add_argument("--out_prefix", default=NULL, required = TRUE, help = "Path where the results should be written")
 parser$add_argument("--AN_cutoff", type="integer", default=0, required = TRUE, help = "AN cutoff below which rows will be removed")
 parser$add_argument("--AC_cutoff", type="integer", default=0, required = TRUE, help = "AC cutoff below which rows will be removed")
+parser$add_argument("--max_MAF_cutoff", type="double", default=0.5, required = FALSE, help = "MAF cutoff for which to remove variants")
 args <- parser$parse_args()
 
 main(args)

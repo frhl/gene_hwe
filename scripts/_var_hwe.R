@@ -3,44 +3,58 @@
 library(argparse)
 library(data.table)
 library(stringr)
+library(dplyr)
+library(Rcpp)
 
+# Source C++  files to speed up computation
+cpp_path <- "/well/lindgren-ukbb/projects/ukbb-11867/flassen/projects/KO/wes_ko_ukbb_nexus/scripts/counts/gene_hwe/01_gene_hwe.cpp"
+Rcpp::sourceCpp(cpp_path)
 
-log_n_choose_k <- function(n, k) {
-  log_sum <- function(i) {
-    if (i==0) {
-      return(0)
-    } else {
-      return(sum(log(seq(1,i))))
-    }
-  }
-  return(log_sum(n) - log_sum(k) - log_sum(n-k))
-}
-
-probability_of_M_pairs <- function(N, K, M)
+sum_probability_of_M_pairs <- function(N, K, M, midp=TRUE)
 {
-  prob <- log_n_choose_k(N, M) +
-    log_n_choose_k(N-M, K-2*M) -
-    log_n_choose_k(2*N, K) +
-    (K - 2*M) * log(2)
-  return(prob)
-}
 
-sum_probability_of_M_pairs <- function(N, K, M)
-{
+  # N - individuals in population
+  # K - total mutated gene copies
+  # M - the number of samples that have a biallelic variant in the gene
+  stopifnot(is.numeric(N))
+  stopifnot(is.numeric(K))
+  stopifnot(is.numeric(M))
+  stopifnot(is.logical(midp))
+
+  if (K>(N*2)) stop("Mutated haplotypes (K) cannot exceed total number of haplotypes in population (N*2)!")
+  if ((2*M)>K) stop("Bi-allelic haplotypes (2*M) cannot exceed number of mutated haplotypes (K)!" )
+
+  probs_midp <- NULL
+
   if (M > N/2) {
     probs <- rep(0, length(seq(M+1, min(N, floor(K/2)))))
     for(i in seq(M+1, min(N, floor(K/2)))) {
       probs[i-M] <- probability_of_M_pairs(N, K, i)
     }
-    return(list(gt=TRUE, prob=probs))
+
+    if (midp && length(probs) > 0) {
+      probs_midp <- probs
+      probs_midp[1] <- probs_midp[1] + log(1/2)
+    }
+
+    return(list(gt=TRUE, prob=probs, prob_midp=probs_midp))
+
   } else {
     probs <- rep(0, M+1)
     for(i in seq(0, M)) {
       probs[i+1] <- probability_of_M_pairs(N, K, i)
+
     }
-    return(list(gt=FALSE, prob=probs))
+    if (midp && length(probs) > 0){
+      probs_midp <- probs
+      probs_midp[i+1] <- probability_of_M_pairs(N, K, i)+log(1/2)
+    }
+    return(list(gt=FALSE, prob=probs, prob_midp=probs_midp))
   }
 }
+
+
+
 
 main <- function(args){
 
@@ -67,12 +81,14 @@ main <- function(args){
     # get probs
     current_min <- 1
     prob <- rep(NA, nrow(dt))
+    prob_midp <- rep(NA, nrow(dt))
     for (row in seq(1,nrow(dt))) {
         
         print(paste(row, "of", nrow(dt)))
         N_samples <- as.integer(dt$AN[row]/2)
         p <- sum_probability_of_M_pairs(N_samples, dt$hom_alt_het[row], dt$hom_alt[row])
         prob[row] <- ifelse(p$gt, 1-sum(exp(p$prob)), sum(exp(p$prob)))
+        prob_midp[row] <- ifelse(p$gt, 1-sum(exp(p$prob_midp)), sum(exp(p$prob_midp)))
         
         cat(prob[row],' ')
         current_min <- min(current_min, prob[row])
@@ -82,7 +98,8 @@ main <- function(args){
       
     # make out file
     dt$hwe_p <- prob
-        
+    dt$hwe_mid_p <- prob_midp    
+
     # export all
     outfile <- paste0(out_prefix,".txt.gz")
     fwrite(dt, outfile)
