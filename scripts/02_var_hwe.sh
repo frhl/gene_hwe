@@ -7,7 +7,7 @@
 #SBATCH --error=logs/var_hwe.errors.log
 #SBATCH --partition=short
 #SBATCH --cpus-per-task 1
-#SBATCH --array=21
+#SBATCH --array=1-22
 
 set -o errexit
 set -o nounset
@@ -35,7 +35,7 @@ submit_hwe_job()
   local nslots="1"
   local num_lines=$( zcat ${count_path} | wc -l )
   local num_chunks=$(( (${num_lines} + ${chunk_size} - 1) / ${chunk_size} ))
-  local array_chunks="1-2" #${num_chunks}"
+  local array_chunks="1-${num_chunks}"
   local slurm_jid=$(sbatch \
     --account="${project}" \
     --job-name="${jname}" \
@@ -86,14 +86,15 @@ submit_merge_job()
 readonly maf_label="maf10"
 readonly counts_dir="data/gnomad/subset/${maf_label}"
 readonly counts_prefix="gnomad.exomes.v4.0.sites.chr${chr}.counts.all.${maf_label}"
-readonly chunk_size=50
+readonly chunk_size=100
 
-readonly out_dir="data/gnomad/hwe_p"
+readonly out_dir="data/gnomad/hwe/variant"
 mkdir -p ${out_dir}
 
 for pop in "nfe"; do
-  #for anno in "pLoF" "synonymous" "pLoF_damaging_missense" "other_missense"; do
-  for anno in "pLoF" "synonymous" "pLoF_damaging_missense"; do
+  #for anno in "pLoF" "synonymous" "other_missense"; do
+  #for anno in "pLoF" "synonymous"; do
+  for anno in "pLoF"; do
     submit_hwe_job "${counts_dir}/${counts_prefix}.${pop}.${anno}.txt.gz" "${out_dir}/${counts_prefix}.${pop}.${anno}.hwe"
   done
 done

@@ -2,6 +2,7 @@
 
 library(data.table)
 library(argparse)
+library(dplyr)
 
 main <- function(args){
     
@@ -23,7 +24,6 @@ main <- function(args){
     vep <- vep[vep$canonical == 1,]
     vep <- vep[vep$biotype == "protein_coding",]
     
-
     gene_map <- vep$gene_id
     names(gene_map) <- vep$varid
 
@@ -59,40 +59,49 @@ main <- function(args){
     # get chromosome and position
     dt_filtered <- dt_filtered[, c("chr", "pos") := tstrsplit(SNPID, ":", fixed = TRUE, keep = 1:2)]
     chromosome <- unique(dt_filtered$chr)
-    print(nrow(dt_filtered)) 
-    
+    print(nrow(dt_filtered))
+
     qc <- qc[qc$chr %in% chromosome,]
     dt_filtered <- dt_filtered[dt_filtered$pos %in% qc$pos,]
     stopifnot(nrow(dt_filtered)>0)
     print(nrow(dt_filtered)) 
-    
 
-    # split by vep consequence
+
+      # split by vep consequence
     # Write the filtered data table to the output path
-    annotations <- na.omit(unique(vep$brava_csqs))
+    annotations <- c(na.omit(unique(vep$brava_csqs)), "pLoF_damaging_missense")
     print(paste("Total annotations to process:", length(annotations)))
     for (anno in annotations) {
+        
+        if (anno == "pLoF_damaging_missense") anno <- c("pLoF", "damaging_missense")
         snps_to_keep <- vep$varid[vep$brava_csqs %in% anno]
         dt_filtered_out <- dt_filtered[dt_filtered$SNPID %in% snps_to_keep,]
+        
+        # now convert to genes
+        dt_filtered_out <- dt_filtered_out %>%
+          group_by(gene_id) %>%
+          summarise(
+            het = sum(het),
+            hom_alt = sum(hom_alt),
+            mac = sum(MAC),
+            AN = max(AN),
+            N_samples = max(AN)/2
+          )
+
+        anno <- paste0(anno, collapse="_")
+        dt_filtered_out$annotation <- anno
         out_file <- paste0(out_prefix, ".", anno, ".txt.gz")
         print(paste("Processing annotation:", anno, "with", nrow(dt_filtered_out), "rows"))
         fwrite(dt_filtered_out, out_file, sep="\t")
     }
 
-    # also do pLoF + damaging missense
-    snps_to_keep <- vep$varid[vep$brava_csqs %in% c("pLoF", "damaging_missense")]
-    dt_filtered_out <- dt_filtered[dt_filtered$SNPID %in% snps_to_keep,]
-    out_file <- paste0(out_prefix, ".pLoF_damaging_missense.txt.gz")
-    print(paste("Processing annotation:", "pLoF_damaging_missense", "with", nrow(dt_filtered_out), "rows"))
-    fwrite(dt_filtered_out, out_file, sep="\t")
-
 }
 
 # add arguments
 parser <- ArgumentParser()
+parser$add_argument("--qc_path", default=NULL, required = TRUE, help = "path to qc file")
 parser$add_argument("--input_path", default=NULL, required = TRUE, help = "path to input file")
 parser$add_argument("--vep_path", default=NULL, required = TRUE, help = "path to input file")
-parser$add_argument("--qc_path", default=NULL, required = TRUE, help = "path to qc file")
 parser$add_argument("--population", default=NULL, required = TRUE, help = "Population code to filter columns by (e.g., nfe, afr, eas)")
 parser$add_argument("--out_prefix", default=NULL, required = TRUE, help = "Path where the results should be written")
 parser$add_argument("--AN_cutoff", type="integer", default=0, required = TRUE, help = "AN cutoff below which rows will be removed")

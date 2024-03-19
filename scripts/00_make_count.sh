@@ -31,12 +31,12 @@ module load BCFtools
 
 # Header and data for the file with "non_ukb" in the field names
 # Header and data for the file with "non_ukb" in the field names
-echo -e "CHROM:POS:REF:ALT AC_non_ukb_nfe AN_non_ukb_nfe nhomalt_non_ukb_nfe AC_non_ukb_afr AN_non_ukb_afr nhomalt_non_ukb_afr AC_non_ukb_eas AN_non_ukb_eas nhomalt_non_ukb_eas AC_non_ukb_amr AN_non_ukb_amr nhomalt_non_ukb_amr AC_non_ukb_fin AN_non_ukb_fin nhomalt_non_ukb_fin AC_non_ukb_sas AN_non_ukb_sas nhomalt_non_ukb_sas AC_non_ukb_asj AN_non_ukb_asj nhomalt_non_ukb_asj" | gzip > ${out_path_with_non_ukb}
+echo -e "SNPID AC_non_ukb_nfe AN_non_ukb_nfe nhomalt_non_ukb_nfe AC_non_ukb_afr AN_non_ukb_afr nhomalt_non_ukb_afr AC_non_ukb_eas AN_non_ukb_eas nhomalt_non_ukb_eas AC_non_ukb_amr AN_non_ukb_amr nhomalt_non_ukb_amr AC_non_ukb_fin AN_non_ukb_fin nhomalt_non_ukb_fin AC_non_ukb_sas AN_non_ukb_sas nhomalt_non_ukb_sas AC_non_ukb_asj AN_non_ukb_asj nhomalt_non_ukb_asj" | gzip > ${out_path_with_non_ukb}
 bcftools query -f "%CHROM:%POS:%REF:%ALT %INFO/AC_non_ukb_nfe %INFO/AN_non_ukb_nfe %INFO/nhomalt_non_ukb_nfe %INFO/AC_non_ukb_afr %INFO/AN_non_ukb_afr %INFO/nhomalt_non_ukb_afr %INFO/AC_non_ukb_eas %INFO/AN_non_ukb_eas %INFO/nhomalt_non_ukb_eas %INFO/AC_non_ukb_amr %INFO/AN_non_ukb_amr %INFO/nhomalt_non_ukb_amr %INFO/AC_non_ukb_fin %INFO/AN_non_ukb_fin %INFO/nhomalt_non_ukb_fin %INFO/AC_non_ukb_sas %INFO/AN_non_ukb_sas %INFO/nhomalt_non_ukb_sas %INFO/AC_non_ukb_asj %INFO/AN_non_ukb_asj %INFO/nhomalt_non_ukb_asj\n" ${in_vcf} | gzip >> ${out_path_with_non_ukb}
 
 # Header and data for the file without "non_ukb" in the field names
-echo -e "SNPID AC_nfe AN_nfe nhomalt_nfe AC_afr AN_afr nhomalt_afr AC_eas AN_eas nhomalt_eas AC_amr AN_amr nhomalt_amr AC_fin AN_fin nhomalt_fin AC_sas AN_sas nhomalt_sas AC_asj AN_asj nhomalt_asj" | gzip > ${out_path_without_non_ukb}
-bcftools query -f "%CHROM:%POS:%REF:%ALT %INFO/AC_nfe %INFO/AN_nfe %INFO/nhomalt_nfe %INFO/AC_afr %INFO/AN_afr %INFO/nhomalt_afr %INFO/AC_eas %INFO/AN_eas %INFO/nhomalt_eas %INFO/AC_amr %INFO/AN_amr %INFO/nhomalt_amr %INFO/AC_fin %INFO/AN_fin %INFO/nhomalt_fin %INFO/AC_sas %INFO/AN_sas %INFO/nhomalt_sas %INFO/AC_asj %INFO/AN_asj %INFO/nhomalt_asj\n" ${in_vcf} | gzip >> ${out_path_without_non_ukb}
+#echo -e "SNPID AC_nfe AN_nfe nhomalt_nfe AC_afr AN_afr nhomalt_afr AC_eas AN_eas nhomalt_eas AC_amr AN_amr nhomalt_amr AC_fin AN_fin nhomalt_fin AC_sas AN_sas nhomalt_sas AC_asj AN_asj nhomalt_asj" | gzip > ${out_path_without_non_ukb}
+#bcftools query -f "%CHROM:%POS:%REF:%ALT %INFO/AC_nfe %INFO/AN_nfe %INFO/nhomalt_nfe %INFO/AC_afr %INFO/AN_afr %INFO/nhomalt_afr %INFO/AC_eas %INFO/AN_eas %INFO/nhomalt_eas %INFO/AC_amr %INFO/AN_amr %INFO/nhomalt_amr %INFO/AC_fin %INFO/AN_fin %INFO/nhomalt_fin %INFO/AC_sas %INFO/AN_sas %INFO/nhomalt_sas %INFO/AC_asj %INFO/AN_asj %INFO/nhomalt_asj\n" ${in_vcf} | gzip >> ${out_path_without_non_ukb}
 
 
 

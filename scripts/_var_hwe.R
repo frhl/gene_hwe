@@ -4,55 +4,7 @@ library(argparse)
 library(data.table)
 library(stringr)
 library(dplyr)
-library(Rcpp)
-
-# Source C++  files to speed up computation
-cpp_path <- "/well/lindgren-ukbb/projects/ukbb-11867/flassen/projects/KO/wes_ko_ukbb_nexus/scripts/counts/gene_hwe/01_gene_hwe.cpp"
-Rcpp::sourceCpp(cpp_path)
-
-sum_probability_of_M_pairs <- function(N, K, M, midp=TRUE)
-{
-
-  # N - individuals in population
-  # K - total mutated gene copies
-  # M - the number of samples that have a biallelic variant in the gene
-  stopifnot(is.numeric(N))
-  stopifnot(is.numeric(K))
-  stopifnot(is.numeric(M))
-  stopifnot(is.logical(midp))
-
-  if (K>(N*2)) stop("Mutated haplotypes (K) cannot exceed total number of haplotypes in population (N*2)!")
-  if ((2*M)>K) stop("Bi-allelic haplotypes (2*M) cannot exceed number of mutated haplotypes (K)!" )
-
-  probs_midp <- NULL
-
-  if (M > N/2) {
-    probs <- rep(0, length(seq(M+1, min(N, floor(K/2)))))
-    for(i in seq(M+1, min(N, floor(K/2)))) {
-      probs[i-M] <- probability_of_M_pairs(N, K, i)
-    }
-
-    if (midp && length(probs) > 0) {
-      probs_midp <- probs
-      probs_midp[1] <- probs_midp[1] + log(1/2)
-    }
-
-    return(list(gt=TRUE, prob=probs, prob_midp=probs_midp))
-
-  } else {
-    probs <- rep(0, M+1)
-    for(i in seq(0, M)) {
-      probs[i+1] <- probability_of_M_pairs(N, K, i)
-
-    }
-    if (midp && length(probs) > 0){
-      probs_midp <- probs
-      probs_midp[i+1] <- probability_of_M_pairs(N, K, i)+log(1/2)
-    }
-    return(list(gt=FALSE, prob=probs, prob_midp=probs_midp))
-  }
-}
-
+library(hardyr)
 
 
 
@@ -81,15 +33,21 @@ main <- function(args){
     # get probs
     current_min <- 1
     prob <- rep(NA, nrow(dt))
-    prob_midp <- rep(NA, nrow(dt))
+    prob_midp_greater <- rep(NA, nrow(dt))
+    prob_midp_less <- rep(NA, nrow(dt))
     for (row in seq(1,nrow(dt))) {
-        
+       
         print(paste(row, "of", nrow(dt)))
-        N_samples <- as.integer(dt$AN[row]/2)
-        p <- sum_probability_of_M_pairs(N_samples, dt$hom_alt_het[row], dt$hom_alt[row])
-        prob[row] <- ifelse(p$gt, 1-sum(exp(p$prob)), sum(exp(p$prob)))
-        prob_midp[row] <- ifelse(p$gt, 1-sum(exp(p$prob_midp)), sum(exp(p$prob_midp)))
-        
+        N <- as.integer(dt$AN[row]/2)
+        K <- dt$MAC[row]
+        M <- dt$hom_alt[row]
+     
+        # use hardyr package to get to gene-level HWE 
+        mid_p_greater <- hwe_exact_test(N, K, M, theta=4, alternative="greater", use_mid_p=TRUE)
+        mid_p_less <- hwe_exact_test(N, K, M, theta=4, alternative="less", use_mid_p=TRUE)
+        prob_midp_greater[row] <- mid_p_greater 
+        prob_midp_less[row] <- mid_p_less
+
         cat(prob[row],' ')
         current_min <- min(current_min, prob[row])
         cat("min prob (CH+Homs): ", min(prob, na.rm=TRUE), "\n")
@@ -97,8 +55,9 @@ main <- function(args){
     }
       
     # make out file
-    dt$hwe_p <- prob
-    dt$hwe_mid_p <- prob_midp    
+    #dt$hwe_p <- prob
+    dt$hwe_mid_p_greater <- prob_midp_greater 
+    dt$hwe_mid_p_less <- prob_midp_less
 
     # export all
     outfile <- paste0(out_prefix,".txt.gz")
