@@ -7,14 +7,14 @@ echo "$(pwd)"
 
 readonly rscript=${1?Error: Missing arg1 (in_vcf)}
 readonly sample_size=${2?Error: Missing arg2 (in_vcf)}
-readonly theta=${3?Error: Missing arg2 (in_vcf)}
+readonly current_k=${3?Error: Missing arg2 (in_vcf)}
 readonly alternative=${4?Error: Missing arg2 (in_vcf)}
 readonly sig_level=${5?Error: Missing arg2 (in_vcf)}
 readonly out_prefix=${6?Error: Missing arg8 (in_vcf)}
 
 set_up_rpy
 Rscript ${rscript} \
-  --theta ${theta} \
+  --current_k ${current_k} \
   --sample_size ${sample_size} \
   --alternative ${alternative} \
   --sig_level ${sig_level} \

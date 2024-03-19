@@ -26,11 +26,11 @@ submit_hwe_power_job()
 {
 
   local sample_size=${1}
-  local theta=${2}
+  local current_k=${2}
   local alternative=${3}
   local sig_level=${4}
   local out_prefix=${5}
-  local jname="_power_hwe"
+  local jname="_power_hwe_n${sample_size}_k${current_k}"
   local lname="logs/_power_hwe"
   local project="lindgren.prj"
   local queue="short"
@@ -47,7 +47,7 @@ submit_hwe_power_job()
     "${bash_script}" \
     "${rscript}" \
     "${sample_size}" \
-    "${theta}" \
+    "${current_k}" \
     "${alternative}" \
     "${sig_level}" \
     "${out_prefix}")
@@ -56,16 +56,19 @@ submit_hwe_power_job()
 
 for alt in "greater"; do
   for sig in "0.05"; do
-    for samples in "1000" "10000" "40000" "50000" "700000" "100000" "400000" "800000" "1000000"; do
-      for theta in "4" "4.1" "4.5" ; do
-        out_prefix="${out_dir}/sim_n${samples}_f${inbreed}_a${sig}_${alt}"
-        if [[ ! -f "${out_prefix}.txt" ]]; then
-          submit_hwe_power_job ${samples} ${theta} ${alt} ${sig} ${out_prefix}
-        else
-          >&2 echo "${out_prefix}.txt already exists. Skipping.."
-        fi
-      done
-    done
+    for samples in "10000" "40000" "100000" "400000"; do
+        lower_bound=$(echo "$samples * 0.001" | bc)
+        upper_bound=$(echo "$samples * 0.10" | bc)
+        for k_value_float in $(seq $lower_bound 500 $upper_bound); do 
+          k_value=$(echo ${k_value_float} | awk '{print int($1+0.5)}')
+          out_prefix="${out_dir}/sim_n${samples}_k${k_value}_a${sig}_${alt}"
+          if [[ ! -f "${out_prefix}.txt" ]]; then
+            submit_hwe_power_job ${samples} ${k_value} ${alt} ${sig} ${out_prefix}
+          else
+            >&2 echo "${out_prefix}.txt already exists. Skipping.."
+          fi
+        done
+     done
   done
 done
 
