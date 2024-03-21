@@ -7,7 +7,7 @@
 #SBATCH --error=logs/var_cauchy.errors.log
 #SBATCH --partition=epyc
 #SBATCH --cpus-per-task 1
-#SBATCH --array=21
+#SBATCH --array=1-22
 
 set -o errexit
 set -o nounset

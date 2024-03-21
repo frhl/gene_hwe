@@ -72,6 +72,9 @@ main <- function(args){
     stopifnot("gene_id" %in% colnames(dt))
     stopifnot("N" %in% colnames(dt))
 
+    # remove p-values greater to one because of numerical imprecision
+    dt <- dt[dt[[pvalue_column]]<=1,]
+    
     genes <- unique(dt$gene_id) 
     # we weight by samples
     out <- do.call(rbind, lapply(genes, function(g){
