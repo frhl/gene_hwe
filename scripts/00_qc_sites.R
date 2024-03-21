@@ -8,13 +8,14 @@ main <- function(args){
     print(args)
     
     input_path <- args$input_path
+    median_depth <- args$median_depth
     out_prefix <- args$out_prefix
 
     # Load the data table from the input path
     dt <- fread(input_path)
     
     # filter to well sequenced sites
-    dt <- dt[dt$median_approx>=10,]
+    dt <- dt[dt$median_approx>=as.numeric(median_depth),]
 
     # filter to sites where the majority has well-sequenced 
     dt <- dt[dt$over_15>0.9,]
@@ -30,6 +31,7 @@ main <- function(args){
 # add arguments
 parser <- ArgumentParser()
 parser$add_argument("--input_path", default=NULL, required = TRUE, help = "path to input file")
+parser$add_argument("--median_depth", default=NULL, required = TRUE, help = "median depth to be used")
 parser$add_argument("--out_prefix", default=NULL, required = TRUE, help = "Path where the results should be written")
 args <- parser$parse_args()
 

@@ -13,9 +13,6 @@ readonly regex_prefix=${1?Error: Missing arg1 (input_path)}
 readonly expt_files=${2?Error: Missing arg4 (gene_intervals)}
 readonly outfile=${3?Error: Missing arg5 (path prefix for saige output)}
 
-readonly out_txt="${outfile}_all.tsv"
-readonly out_gzip="${out_txt}.gz"
-
 readonly directory="$( dirname ${regex_prefix} )"
 readonly filename="$( basename ${regex_prefix} )"
 
@@ -27,7 +24,7 @@ if [ ${expt_files} = ${found_files} ]; then
     --in_dir ${directory} \
     --regex ${filename} \
     --n_expt ${expt_files} \
-    --out ${out_gzip}
+    --out ${outfile}
 else
   >&2 echo "Error: Expected ${expt_files} genes but found ${found_files}! Regex used: '${filename}' in directory '${directory}.'"
 fi

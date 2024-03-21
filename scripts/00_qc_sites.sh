@@ -22,14 +22,17 @@ readonly chr=$( get_chr ${task_id} )
 readonly in_dir="/well/lindgren/flassen/ressources/gnomad/exomes"
 readonly in_file="${in_dir}/gnomad.exomes.v4.0.coverage.summary.tsv.gz"
 
+readonly median_depth="30"
+
 readonly out_dir="data/gnomad/coverage"
-readonly out_prefix="${out_dir}/gnomad.exomes.v4.0.sites.keep"
+readonly out_prefix="${out_dir}/gnomad.exomes.v4.0.sites.keep.median_dp${median_depth}"
 
 mkdir -p ${out_dir}
 
 module load R
 Rscript ${rscript} \
   --input_path="${in_file}" \
+  --median_depth="${median_depth}" \
   --out_prefix="${out_prefix}"
 
 

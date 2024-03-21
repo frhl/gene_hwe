@@ -80,10 +80,10 @@ def main(args):
     #                am_cutoff = am_score
     #        )
     #    )
-    if case_builder in "brava":
+    if case_builder in "gene_hwe":
         print(f"Using {case_builder} builder with cadd>{cadd_score}\trevel>{revel_score}\tspliceAI>{spliceai_score}")
         ht = ht.annotate(
-                    brava_csqs=ko.csqs_case_builder_brava(
+                    brava_csqs=ko.csqs_case_builder_gene_hwe(
                             worst_csq_expr=ht.vep.worst_csq_by_gene_canonical,
                             spliceai_cutoff = spliceai_score,
                             revel_cutoff = revel_score,

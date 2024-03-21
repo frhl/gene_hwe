@@ -59,7 +59,7 @@ for alt in "greater"; do
     for samples in "10000" "40000" "100000" "400000"; do
         lower_bound=$(echo "$samples * 0.001" | bc)
         upper_bound=$(echo "$samples * 0.10" | bc)
-        for k_value_float in $(seq $lower_bound 500 $upper_bound); do 
+        for k_value_float in $(seq $lower_bound 100 $upper_bound); do 
           k_value=$(echo ${k_value_float} | awk '{print int($1+0.5)}')
           out_prefix="${out_dir}/sim_n${samples}_k${k_value}_a${sig}_${alt}"
           if [[ ! -f "${out_prefix}.txt" ]]; then

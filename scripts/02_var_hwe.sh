@@ -82,22 +82,23 @@ submit_merge_job()
 }
 
 
-
-readonly maf_label="maf10"
-readonly counts_dir="data/gnomad/subset/${maf_label}"
-readonly counts_prefix="gnomad.exomes.v4.0.sites.chr${chr}.counts.all.${maf_label}"
+readonly pop="non_ukb_nfe"
+readonly qc_id="median_dp30"
+readonly maf_label="maf5"
+readonly counts_dir="data/gnomad/variants/${qc_id}/${pop}/${maf_label}"
+readonly counts_prefix="gnomad.exomes.v4.0.sites.chr${chr}.counts.all.${qc_id}.${maf_label}"
 readonly chunk_size=100
 
-readonly out_dir="data/gnomad/hwe/variant"
+readonly out_dir="data/gnomad/hwe/variants/${qc_id}/${pop}/${maf_label}"
 mkdir -p ${out_dir}
 
-for pop in "nfe"; do
+#for pop in "nfe"; do
   #for anno in "pLoF" "synonymous" "other_missense"; do
   #for anno in "pLoF" "synonymous"; do
-  for anno in "pLoF"; do
+  for anno in "synonymous"; do
     submit_hwe_job "${counts_dir}/${counts_prefix}.${pop}.${anno}.txt.gz" "${out_dir}/${counts_prefix}.${pop}.${anno}.hwe"
   done
-done
+#done
 
 
 

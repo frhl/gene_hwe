@@ -7,7 +7,7 @@
 #SBATCH --error=logs/get_worst_csqs.errors.log
 #SBATCH --partition=short
 #SBATCH --cpus-per-task 1
-#SBATCH --array=1-22
+#SBATCH --array=21
 
 source utils/qsub_utils.sh
 source utils/hail_utils.sh
@@ -25,12 +25,12 @@ readonly spliceai_path="${spliceai_dir}/ukb_wes_450k.spliceai.chr${chr}.ht"
 
 readonly revel_cutoff=0.773
 readonly spliceai_cutoff=0.50 # 0.20/0.50
-readonly case_builder="brava" # original/brava
-readonly group="brava_s50"
+readonly case_builder="gene_hwe" # original/brava
+readonly group="gene_hwe_s50"
 
 readonly out_dir="data/gnomad/exomes/vep105/worst_csqs"
 readonly out_prefix="${out_dir}/gnomad.exomes.v4.0.chr${chr}.vep105.csqs.csqs.worst_csq_by_gene_canonical.${group}"
-readonly hail_script="scripts/gnomad/04_get_worst_csqs.py"
+readonly hail_script="scripts/variant_annotation/04_get_worst_csqs.py"
 
 mkdir -p ${out_dir}
 mkdir -p ${spark_dir}

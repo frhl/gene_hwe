@@ -35,6 +35,11 @@ main <- function(args){
     prob <- rep(NA, nrow(dt))
     prob_midp_greater <- rep(NA, nrow(dt))
     prob_midp_less <- rep(NA, nrow(dt))
+    thetas <- rep(NA, nrow(dt))
+    N_values <- rep(NA, nrow(dt))
+    K_values <- rep(NA, nrow(dt))
+    M_values <- rep(NA, nrow(dt))
+    
     for (row in seq(1,nrow(dt))) {
        
         print(paste(row, "of", nrow(dt)))
@@ -42,22 +47,22 @@ main <- function(args){
         K <- dt$MAC[row]
         M <- dt$hom_alt[row]
      
-        # use hardyr package to get to gene-level HWE 
-        mid_p_greater <- hwe_exact_test(N, K, M, theta=4, alternative="greater", use_mid_p=TRUE)
-        mid_p_less <- hwe_exact_test(N, K, M, theta=4, alternative="less", use_mid_p=TRUE)
-        prob_midp_greater[row] <- mid_p_greater 
-        prob_midp_less[row] <- mid_p_less
-
-        cat(prob[row],' ')
-        current_min <- min(current_min, prob[row])
-        cat("min prob (CH+Homs): ", min(prob, na.rm=TRUE), "\n")
+        N_values[row] <- N
+        K_values[row] <- K
+        M_values[row] <- M
+        thetas[row] <- calc_theta(N, K, M)
         
+        mid_p_greater <- hwe_exact_test(N, K, M, theta=4, alternative="greater", use_mid_p=TRUE)
+        prob_midp_greater[row] <- mid_p_greater 
     }
       
     # make out file
-    #dt$hwe_p <- prob
-    dt$hwe_mid_p_greater <- prob_midp_greater 
-    dt$hwe_mid_p_less <- prob_midp_less
+    dt$hwe_mid_p <- prob_midp_greater 
+    dt$theta <- thetas
+    dt$N <- N_values
+    dt$K <- K_values
+    dt$M <- M_values
+    dt$pA <- dt$K / (dt$N * 2)
 
     # export all
     outfile <- paste0(out_prefix,".txt.gz")

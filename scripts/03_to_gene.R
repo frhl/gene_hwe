@@ -85,7 +85,8 @@ main <- function(args){
             hom_alt = sum(hom_alt),
             mac = sum(MAC),
             AN = max(AN),
-            N_samples = max(AN)/2
+            N_samples_max = max(AN)/2
+            N_samples_min = min(AN)/2
           )
 
         anno <- paste0(anno, collapse="_")
